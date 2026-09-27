@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enhancer — Photo & Video Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2 L2 7 L2 17 L12 22 L22 17 L22 7 Z"/>
+        <path d="M12 22 L12 12 M22 7 L12 12 M2 7 L12 12"/>
+      </svg>
+      <span>ENHANCER</span>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" data-view="photo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <path d="M21 15 L16 10 L5 21"/>
+        </svg>
+        <span>Photo</span>
+      </button>
+      <button class="nav-item" data-view="video">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <path d="M10 9 L15 12 L10 15 Z" fill="currentColor" stroke="none"/>
+        </svg>
+        <span>Video</span>
+      </button>
+      <button class="nav-item" data-view="batch">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="3" y="3" width="13" height="13" rx="2"/>
+          <path d="M8 21 L21 21 L21 8"/>
+        </svg>
+        <span>Batch</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status">
+        <span class="dot"></span>
+        <span>Local processing</span>
+      </div>
+      <div class="version">v1.2.0</div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <main class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 id="viewTitle">Photo Pipeline</h1>
+        <span class="topbar-sub" id="viewSub">Enhance & optimize for WhatsApp</span>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost" id="btnReset" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/>
+            <path d="M3 3 L3 8 L8 8"/>
+          </svg>
+          Reset
+        </button>
+        <button class="btn btn-primary" id="btnExport" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3 L12 15 M7 10 L12 15 L17 10 M3 21 L21 21"/>
+          </svg>
+          Export
+        </button>
+      </div>
+    </header>
+
+    <!-- ═══ VIEW: PHOTO ═══ -->
+    <section class="view active" id="view-photo">
+      <div class="workspace">
+
+        <!-- Left: source list -->
+        <div class="panel panel-source">
+          <div class="panel-head">
+            <span>Source</span>
+            <button class="icon-btn" id="photoAddBtn" title="Add photo">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5 L12 19 M5 12 L19 12"/>
+              </svg>
+            </button>
+          </div>
+          <div class="panel-body">
+            <div class="dropzone" id="photoDrop">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <path d="M21 15 L16 10 L5 21"/>
+              </svg>
+              <p>Drop photo</p>
+              <small>JPG · PNG · WEBP · ≤25MB</small>
+              <input type="file" id="photoInput" accept="image/*" hidden>
+            </div>
+            <div class="file-info" id="photoFileInfo" hidden>
+              <div class="file-info-row">
+                <span>File</span>
+                <span class="mono truncate" id="pFileName">—</span>
+              </div>
+              <div class="file-info-row">
+                <span>Original</span>
+                <span class="mono" id="pFileSize">—</span>
+              </div>
+              <div class="file-info-row">
+                <span>Dimensions</span>
+                <span class="mono" id="pFileDim">—</span>
+              </div>
+              <div class="file-info-row">
+                <span>Output</span>
+                <span class="mono accent" id="pOutSize">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center: canvas -->
+        <div class="panel panel-canvas">
+          <div class="panel-head">
+            <span>Preview</span>
+            <div class="panel-head-actions">
+              <button class="chip active" data-photo-mode="split">Split</button>
+              <button class="chip" data-photo-mode="result">Result</button>
+              <button class="chip" data-photo-mode="original">Original</button>
+            </div>
+          </div>
+          <div class="panel-body canvas-body" id="photoCanvasWrap">
+            <div class="empty-state" id="photoEmpty">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <path d="M21 15 L16 10 L5 21"/>
+              </svg>
+              <p>No image loaded</p>
+              <small>Add a photo from the source panel</small>
+            </div>
+
+            <div class="canvas-stage" id="photoStage" hidden>
+              <canvas id="canvasOriginal" class="layer"></canvas>
+              <canvas id="canvasResult" class="layer"></canvas>
+              <div class="split-handle" id="splitHandle">
+                <div class="split-line"></div>
+                <div class="split-grip">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <path d="M9 6 L4 12 L9 18 M15 6 L20 12 L15 18"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="canvas-label left">Before</div>
+              <div class="canvas-label right">After</div>
+            </div>
+          </div>
+          <div class="panel-foot" id="photoHistogram" hidden>
+            <canvas id="histogram" width="256" height="60"></canvas>
+            <div class="histogram-legend">
+              <span><i class="sw" style="background:#e05252"></i>R</span>
+              <span><i class="sw" style="background:#52e07a"></i>G</span>
+              <span><i class="sw" style="background:#528ee0"></i>B</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: controls -->
+        <div class="panel panel-controls">
+          <div class="panel-head">
+            <span>Parameters</span>
+            <button class="icon-btn" id="btnAuto" title="Auto enhance">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 2 L13.8 8.2 L20 10 L13.8 11.8 L12 18 L10.2 11.8 L4 10 L10.2 8.2 Z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="panel-body scroll">
+
+            <div class="section">
+              <div class="section-title">Tone</div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Brightness</span><span class="mono" id="v-brightness">0</span></div>
+                <input type="range" id="s-brightness" min="-100" max="100" value="0">
+              </div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Contrast</span><span class="mono" id="v-contrast">0</span></div>
+                <input type="range" id="s-contrast" min="-100" max="100" value="0">
+              </div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Exposure</span><span class="mono" id="v-exposure">0</span></div>
+                <input type="range" id="s-exposure" min="-100" max="100" value="0">
+              </div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Highlights</span><span class="mono" id="v-highlights">0</span></div>
+                <input type="range" id="s-highlights" min="-100" max="100" value="0">
+              </div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Shadows</span><span class="mono" id="v-shadows">0</span></div>
+                <input type="range" id="s-shadows" min="-100" max="100" value="0">
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Color</div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Saturation</span><span class="mono" id="v-saturation">0</span></div>
+                <input type="range" id="s-saturation" min="-100" max="100" value="0">
+              </div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Warmth</span><span class="mono" id="v-warmth">0</span></div>
+                <input type="range" id="s-warmth" min="-100" max="100" value="0">
+              </div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Vibrance</span><span class="mono" id="v-vibrance">0</span></div>
+                <input type="range" id="s-vibrance" min="-100" max="100" value="0">
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Detail</div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Sharpness</span><span class="mono" id="v-sharpness">0</span></div>
+                <input type="range" id="s-sharpness" min="0" max="100" value="0">
+              </div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Denoise</span><span class="mono" id="v-denoise">0</span></div>
+                <input type="range" id="s-denoise" min="0" max="100" value="0">
+              </div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Clarity</span><span class="mono" id="v-clarity">0</span></div>
+                <input type="range" id="s-clarity" min="0" max="100" value="0">
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Export</div>
+              <div class="field-row">
+                <label>Format</label>
+                <select id="p-format">
+                  <option value="image/jpeg" selected>JPEG</option>
+                  <option value="image/webp">WEBP</option>
+                  <option value="image/png">PNG (lossless)</option>
+                </select>
+              </div>
+              <div class="field-row">
+                <label>Target</label>
+                <select id="p-preset">
+                  <option value="1600">WhatsApp HD · 1600px</option>
+                  <option value="1080" selected>WhatsApp Standard · 1080px</option>
+                  <option value="800">Compact · 800px</option>
+                  <option value="2048">Full HD+ · 2048px</option>
+                  <option value="0">Original size</option>
+                </select>
+              </div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Quality</span><span class="mono" id="v-quality">92</span></div>
+                <input type="range" id="s-quality" min="50" max="100" value="92">
+              </div>
+              <div class="field-row">
+                <label>Target size</label>
+                <select id="p-targetsize">
+                  <option value="0">No limit</option>
+                  <option value="102400">≤ 100 KB</option>
+                  <option value="512000">≤ 500 KB</option>
+                  <option value="1048576">≤ 1 MB</option>
+                  <option value="5242880">≤ 5 MB</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══ VIEW: VIDEO ═══ -->
+    <section class="view" id="view-video">
+      <div class="workspace">
+
+        <div class="panel panel-source">
+          <div class="panel-head">
+            <span>Source</span>
+            <button class="icon-btn" id="videoAddBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5 L12 19 M5 12 L19 12"/>
+              </svg>
+            </button>
+          </div>
+          <div class="panel-body">
+            <div class="dropzone" id="videoDrop">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <path d="M10 9 L15 12 L10 15 Z"/>
+              </svg>
+              <p>Drop video</p>
+              <small>MP4 · MOV · WEBM · ≤200MB</small>
+              <input type="file" id="videoInput" accept="video/*" hidden>
+            </div>
+            <div class="file-info" id="videoFileInfo" hidden>
+              <div class="file-info-row">
+                <span>File</span>
+                <span class="mono truncate" id="vFileName">—</span>
+              </div>
+              <div class="file-info-row">
+                <span>Original</span>
+                <span class="mono" id="vFileSize">—</span>
+              </div>
+              <div class="file-info-row">
+                <span>Resolution</span>
+                <span class="mono" id="vFileRes">—</span>
+              </div>
+              <div class="file-info-row">
+                <span>Duration</span>
+                <span class="mono" id="vFileDur">—</span>
+              </div>
+              <div class="file-info-row">
+                <span>Output</span>
+                <span class="mono accent" id="vOutSize">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-canvas">
+          <div class="panel-head">
+            <span>Preview</span>
+            <div class="panel-head-actions">
+              <button class="chip active" id="btnPreviewToggle">Filter: On</button>
+            </div>
+          </div>
+          <div class="panel-body canvas-body">
+            <div class="empty-state" id="videoEmpty">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <path d="M10 9 L15 12 L10 15 Z"/>
+              </svg>
+              <p>No video loaded</p>
+              <small>Add a video from the source panel</small>
+            </div>
+            <video id="videoPreview" class="video-player" hidden></video>
+          </div>
+          <div class="panel-foot progress-bar" id="videoProgressWrap" hidden>
+            <div class="progress-track"><div class="progress-fill" id="videoProgressFill"></div></div>
+            <div class="progress-label mono" id="videoProgressLabel">Ready</div>
+          </div>
+        </div>
+
+        <div class="panel panel-controls">
+          <div class="panel-head">
+            <span>Encoding</span>
+            <button class="icon-btn" id="btnVideoAuto" title="Auto">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 2 L13.8 8.2 L20 10 L13.8 11.8 L12 18 L10.2 11.8 L4 10 L10.2 8.2 Z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="panel-body scroll">
+
+            <div class="section">
+              <div class="section-title">Tone</div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Brightness</span><span class="mono" id="v-v-brightness">100%</span></div>
+                <input type="range" id="v-s-brightness" min="50" max="150" value="100">
+              </div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Contrast</span><span class="mono" id="v-v-contrast">100%</span></div>
+                <input type="range" id="v-s-contrast" min="50" max="150" value="100">
+              </div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Saturation</span><span class="mono" id="v-v-saturation">100%</span></div>
+                <input type="range" id="v-s-saturation" min="0" max="200" value="100">
+              </div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Gamma</span><span class="mono" id="v-v-gamma">1.00</span></div>
+                <input type="range" id="v-s-gamma" min="50" max="150" value="100">
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Resolution</div>
+              <div class="res-grid" id="resGrid">
+                <button class="res-btn" data-res="3840" data-height="2160">
+                  <span class="res-name">4K</span>
+                  <span class="res-dim mono">3840×2160</span>
+                </button>
+                <button class="res-btn" data-res="2560" data-height="1440">
+                  <span class="res-name">1440p</span>
+                  <span class="res-dim mono">2560×1440</span>
+                </button>
+                <button class="res-btn active" data-res="1920" data-height="1080">
+                  <span class="res-name">1080p</span>
+                  <span class="res-dim mono">1920×1080</span>
+                </button>
+                <button class="res-btn" data-res="1280" data-height="720">
+                  <span class="res-name">720p</span>
+                  <span class="res-dim mono">1280×720</span>
+                </button>
+                <button class="res-btn" data-res="854" data-height="480">
+                  <span class="res-name">480p</span>
+                  <span class="res-dim mono">854×480</span>
+                </button>
+                <button class="res-btn" data-res="640" data-height="360">
+                  <span class="res-name">360p</span>
+                  <span class="res-dim mono">640×360</span>
+                </button>
+              </div>
+              <div class="field-row" style="margin-top:12px">
+                <label>Mode</label>
+                <select id="v-fit">
+                  <option value="contain">Fit (keep aspect)</option>
+                  <option value="cover" selected>Cover (crop edges)</option>
+                  <option value="stretch">Stretch</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Encoding</div>
+              <div class="field-row">
+                <label>Codec</label>
+                <select id="v-codec">
+                  <option value="libx264" selected>H.264 (compatible)</option>
+                  <option value="libx265">H.265 (smaller)</option>
+                </select>
+              </div>
+              <div class="field-row">
+                <label>Preset</label>
+                <select id="v-preset">
+                  <option value="ultrafast">Ultrafast</option>
+                  <option value="superfast">Superfast</option>
+                  <option value="veryfast" selected>Veryfast</option>
+                  <option value="fast">Fast</option>
+                  <option value="medium">Medium (slow)</option>
+                </select>
+              </div>
+              <div class="field-row">
+                <label>Rate control</label>
+                <select id="v-rc">
+                  <option value="bitrate" selected>Bitrate</option>
+                  <option value="crf">CRF (quality)</option>
+                </select>
+              </div>
+              <div class="slider-row">
+                <div class="slider-label"><span>Bitrate</span><span class="mono" id="v-v-bitrate">2.5 Mbps</span></div>
+                <input type="range" id="v-s-bitrate" min="5" max="400" value="25">
+              </div>
+              <div class="slider-row" id="crfRow" style="display:none">
+                <div class="slider-label"><span>CRF</span><span class="mono" id="v-v-crf">23</span></div>
+                <input type="range" id="v-s-crf" min="0" max="51" value="23">
+              </div>
+              <div class="field-row">
+                <label>FPS</label>
+                <select id="v-fps">
+                  <option value="0" selected>Keep original</option>
+                  <option value="24">24</option>
+                  <option value="30">30</option>
+                  <option value="60">60</option>
+                </select>
+              </div>
+              <div class="field-row">
+                <label>Audio</label>
+                <select id="v-audio">
+                  <option value="aac" selected>AAC 128 kbps</option>
+                  <option value="aac-96">AAC 96 kbps</option>
+                  <option value="none">Remove audio</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Estimate</div>
+              <div class="estimate" id="vEstimate">
+                <div class="est-row"><span>Duration</span><span class="mono" id="estDur">—</span></div>
+                <div class="est-row"><span>Est. size</span><span class="mono" id="estSize">—</span></div>
+                <div class="est-row"><span>WA limit</span><span class="mono" id="estLimit">16 MB</span></div>
+                <div class="est-row"><span>Status</span><span class="mono" id="estStatus">—</span></div>
+              </div>
+            </div>
+
+            <div class="section">
+              <button class="btn btn-primary btn-block" id="btnProcessVideo" disabled>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 3 L19 12 L5 21 Z" fill="currentColor"/>
+                </svg>
+                Process & Download
+              </button>
+            </div>
+
+      </div>
+    </section>
+
+    <!-- ═══ VIEW: BATCH ═══ -->
+    <section class="view" id="view-batch">
+      <div class="workspace workspace-single">
+        <div class="panel">
+          <div class="panel-head">
+            <span>Batch Queue</span>
+            <button class="btn btn-ghost" id="batchAddBtn">Add Files</button>
+          </div>
+          <div class="panel-body">
+            <div class="dropzone dropzone-wide" id="batchDrop">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="3" width="13" height="13" rx="2"/>
+                <path d="M8 21 L21 21 L21 8"/>
+              </svg>
+              <p>Drop multiple photos</p>
+              <small>All will be enhanced with current parameters</small>
+              <input type="file" id="batchInput" accept="image/*" multiple hidden>
+            </div>
+            <div class="batch-list" id="batchList"></div>
+            <div class="batch-actions" id="batchActions" hidden>
+              <button class="btn btn-primary" id="batchRun">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 3 L19 12 L5 21 Z" fill="currentColor"/>
+                </svg>
+                Run Batch
+              </button>
+              <button class="btn btn-ghost" id="batchClear">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+<script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/photo.js"></script>
+<script src="js/video.js"></script>
+<script src="js/batch.js"></script>
+</body>
+</html>
